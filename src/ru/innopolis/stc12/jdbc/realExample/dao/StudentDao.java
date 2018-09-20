@@ -2,6 +2,9 @@ package ru.innopolis.stc12.jdbc.realExample.dao;
 
 import ru.innopolis.stc12.jdbc.realExample.connectionManager.ConnectionManager;
 import ru.innopolis.stc12.jdbc.realExample.connectionManager.ConnectionManagerJdbcImpl;
+import ru.innopolis.stc12.jdbc.realExample.pojo.Group;
+import ru.innopolis.stc12.jdbc.realExample.pojo.PersonalData;
+import ru.innopolis.stc12.jdbc.realExample.pojo.Sex;
 import ru.innopolis.stc12.jdbc.realExample.pojo.Student;
 
 import java.sql.Connection;
@@ -9,67 +12,33 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Date;
-import java.util.List;
 
-public class StudentDao implements GenericDao<Student, Integer> {
-    private static ConnectionManager connectionManager = ConnectionManagerJdbcImpl.getInstance();
+public class StudentDao extends AbstractDao<Student, Integer> {
+    private static ConnectionManager connectionManager = ConnectionManagerJdbcImpl.getInstance();   //TODO this right?
 
-    public boolean deleteStudentByName(Student student) {
-        Connection connection = connectionManager.getConnection();
-        try (PreparedStatement preparedStatement = connection.prepareStatement("DELETE FROM students WHERE name=? AND family_name=?")) {
-            preparedStatement.setString(1, student.getName());
-            preparedStatement.setString(2, student.getFamilyName());
-            preparedStatement.execute();
-        } catch (SQLException e) {
-            System.out.println(e.getMessage());
-            return false;
+    public StudentDao() {
+        readSql = "SELECT * FROM students WHERE id = ?";
+    }
+
+    @Override
+    protected Student readParse(PreparedStatement statement, Integer id) throws SQLException {
+        statement.setInt(1, id);
+        ResultSet resultSet = statement.executeQuery();
+        if (resultSet.next()) {
+            Sex sex = DaoFactory.getSexDao().read(resultSet.getInt("sex"));
+            Group group = DaoFactory.getGroupDao().read(resultSet.getInt("group"));
+            PersonalData personalData = DaoFactory.getPersonalDataDao().read(resultSet.getInt("personal_data"));
+
+            return new Student(
+                    resultSet.getInt("id"),
+                    resultSet.getString("name"),
+                    resultSet.getString("surname"),
+                    sex,
+                    resultSet.getDate("date_of_receipt"),
+                    group,
+                    personalData);
         }
-        return true;
-    }
-
-    @Override
-    public List getAll() {
         return null;
-    }
-
-    @Override
-    public Student read(Integer id) {
-        Connection connection = connectionManager.getConnection();
-        Student student = null;
-        String sql = "SELECT * FROM students WHERE id = ?";
-        try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
-            preparedStatement.setInt(1, id);
-            try (ResultSet resultSet = preparedStatement.executeQuery()) {
-                if (resultSet.next()) {
-                    student = new Student(resultSet.getInt(1),
-                            resultSet.getString(2),
-                            resultSet.getString(3),
-                            resultSet.getInt(4),
-                            resultSet.getString(5),
-                            resultSet.getInt(6));
-                    return student;
-                }
-            } catch (SQLException e) {
-                System.out.println(e.getMessage());
-                return null;
-            }
-            preparedStatement.execute();
-        } catch (SQLException e) {
-            System.out.println(e.getMessage());
-            return null;
-        }
-        return student;
-    }
-
-
-    @Override
-    public Student update(Student entity) {
-        return null;
-    }
-
-    @Override
-    public boolean delete(Integer id) {
-        return false;
     }
 
     @Override
