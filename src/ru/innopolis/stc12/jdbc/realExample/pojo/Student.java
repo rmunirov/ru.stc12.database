@@ -1,23 +1,24 @@
 package ru.innopolis.stc12.jdbc.realExample.pojo;
 
+import java.util.Date;
+
 public class Student {
     private int id;
     private String name;
-    private String familyName;
-    private int age;
-    private String contact;
-    private int city;
+    private String surname;
+    private Sex sex;
+    private Date dateOfReceipt;
+    private Group group;
+    private PersonalData personalData;
 
-    public Student(int id, String name, String familyName, int age, String contact, int city) {
+    public Student(int id, String name, String surname, Sex sex, Date dateOfReceipt, Group group, PersonalData personalData) {
         this.id = id;
         this.name = name;
-        this.familyName = familyName;
-        this.age = age;
-        this.contact = contact;
-        this.city = city;
-    }
-
-    public Student() {
+        this.surname = surname;
+        this.sex = sex;
+        this.dateOfReceipt = dateOfReceipt;
+        this.group = group;
+        this.personalData = personalData;
     }
 
     public int getId() {
@@ -32,51 +33,60 @@ public class Student {
         return name;
     }
 
-    public void setNamr(String name) {
+    public void setName(String name) {
         this.name = name;
     }
 
-    public String getFamilyName() {
-        return familyName;
+    public String getSurname() {
+        return surname;
     }
 
-    public void setFamilyName(String familyName) {
-        this.familyName = familyName;
+    public void setSurname(String surname) {
+        this.surname = surname;
     }
 
-    public int getAge() {
-        return age;
+    public Sex getSex() {
+        return sex;
     }
 
-    public void setAge(int age) {
-        this.age = age;
+    public void setSex(Sex sex) {
+        this.sex = sex;
     }
 
-    public String getContact() {
-        return contact;
+    public Date getDateOfReceipt() {
+        return dateOfReceipt;
     }
 
-    public void setContact(String contact) {
-        this.contact = contact;
+    public void setDateOfReceipt(Date dateOfReceipt) {
+        this.dateOfReceipt = dateOfReceipt;
     }
 
-    public int getCity() {
-        return city;
+    public Group getGroup() {
+        return group;
     }
 
-    public void setCity(int city) {
-        this.city = city;
+    public void setGroup(Group group) {
+        this.group = group;
+    }
+
+    public PersonalData getPersonalData() {
+        return personalData;
+    }
+
+    public void setPersonalData(PersonalData personalData) {
+        this.personalData = personalData;
     }
 
     @Override
     public String toString() {
         return "Student{" +
                 "id=" + id +
-                ", namr='" + name + '\'' +
-                ", familyName='" + familyName + '\'' +
-                ", age=" + age +
-                ", contact='" + contact + '\'' +
-                ", city=" + city +
+                ", name='" + name + '\'' +
+                ", surname='" + surname + '\'' +
+                ", sex=" + sex +
+                ", dateOfReceipt=" + dateOfReceipt +
+                ", group=" + group +
+                ", personalData=" + personalData +
                 '}';
     }
 }
