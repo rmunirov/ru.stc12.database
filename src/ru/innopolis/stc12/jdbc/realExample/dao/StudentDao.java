@@ -1,63 +1,77 @@
 package ru.innopolis.stc12.jdbc.realExample.dao;
 
-import ru.innopolis.stc12.jdbc.realExample.connectionManager.ConnectionManager;
-import ru.innopolis.stc12.jdbc.realExample.connectionManager.ConnectionManagerJdbcImpl;
 import ru.innopolis.stc12.jdbc.realExample.pojo.Group;
 import ru.innopolis.stc12.jdbc.realExample.pojo.PersonalData;
 import ru.innopolis.stc12.jdbc.realExample.pojo.Sex;
 import ru.innopolis.stc12.jdbc.realExample.pojo.Student;
 
-import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
-public class StudentDao extends AbstractDao<Student, Integer> {
-    private static ConnectionManager connectionManager = ConnectionManagerJdbcImpl.getInstance();   //TODO this right?
-
+public class StudentDao extends AbstractDao<Student> {
     public StudentDao() {
         readSql = "SELECT * FROM students WHERE id = ?";
+        createSql = "INSERT INTO students VALUES (DEFAULT , ?, ?, ?, ?, ?, ?)";
+        deleteSql = "DELETE FROM students WHERE id=?";
+        updateSql = "UPDATE students SET name=?, surname=?, sex=?, date_of_receipt=?, \"group\"=?, personal_data=? WHERE id=?";
+        readAllSql = "SELECT * FROM students";
     }
 
     @Override
-    protected Student readParse(PreparedStatement statement, Integer id) throws SQLException {
-        statement.setInt(1, id);
-        ResultSet resultSet = statement.executeQuery();
-        if (resultSet.next()) {
+    protected List<Student> readParse(ResultSet resultSet) throws SQLException {
+/*      TODO can write a larger query using JOIN, but many tables, how better? this solution work long
+        SELECT *
+                FROM students
+        INNER JOIN sex ON students.sex = sex.id
+        INNER JOIN groups ON students.group = groups.id
+        INNER JOIN personal_data ON students.personal_data = personal_data.id
+        WHERE students.id = 38
+        ...*/
+        List<Student> list = new ArrayList<>();
+        while (resultSet.next()) {
             Sex sex = DaoFactory.getSexDao().read(resultSet.getInt("sex"));
             Group group = DaoFactory.getGroupDao().read(resultSet.getInt("group"));
             PersonalData personalData = DaoFactory.getPersonalDataDao().read(resultSet.getInt("personal_data"));
-
-            return new Student(
+            list.add(new Student(
                     resultSet.getInt("id"),
                     resultSet.getString("name"),
                     resultSet.getString("surname"),
                     sex,
                     resultSet.getDate("date_of_receipt"),
                     group,
-                    personalData);
+                    personalData));
         }
-        return null;
+        return list;
     }
 
     @Override
-    public boolean create(Student entity) {
-        Connection connection = connectionManager.getConnection();
-        String sql = "INSERT INTO students VALUES (DEFAULT , ?, ?, ?, ?, ?, ?)";
-        try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
-            preparedStatement.setString(1, entity.getName());
-            preparedStatement.setString(2, entity.getSurname());
-            preparedStatement.setInt(3, entity.getSex().getId());
-            preparedStatement.setDate(4, convertUtilDateToSqlDate(entity.getDateOfReceipt()));
-            preparedStatement.setInt(5, entity.getGroup().getId());
-            preparedStatement.setInt(6, entity.getPersonalData().getId());
-            preparedStatement.execute();
-        } catch (SQLException e) {
-            System.out.println(e.getMessage());
-            return false;
+    protected boolean createParse(PreparedStatement statement, Student entity) throws SQLException {
+        if (entity.getSex() == null) return false;
+        if (entity.getGroup() == null) return false;
+        if (entity.getPersonalData() == null) return false;
+
+        parseStatementForCreateAndUpdate(statement, entity);
+        PersonalDataDao personalDataDao = DaoFactory.getPersonalDataDao();
+        PersonalData personalData = personalDataDao.read(entity.getPersonalData().getId());
+        if (personalData == null) {
+            personalDataDao.create(entity.getPersonalData());
         }
-        return true;
+        return statement.execute();
+    }
+
+    @Override
+    protected boolean updateParse(PreparedStatement statement, Student entity) throws SQLException {
+        if (entity.getSex() == null) return false;
+        if (entity.getGroup() == null) return false;
+        if (entity.getPersonalData() == null) return false;
+
+        parseStatementForCreateAndUpdate(statement, entity);
+        statement.setInt(7, entity.getId());
+        return statement.execute();
     }
 
     private java.sql.Date convertUtilDateToSqlDate(Date date) {
@@ -65,5 +79,14 @@ public class StudentDao extends AbstractDao<Student, Integer> {
             return null;
         }
         return new java.sql.Date(date.getTime());
+    }
+
+    private void parseStatementForCreateAndUpdate(PreparedStatement statement, Student entity) throws SQLException {
+        statement.setString(1, entity.getName());
+        statement.setString(2, entity.getSurname());
+        statement.setInt(3, entity.getSex().getId());
+        statement.setDate(4, convertUtilDateToSqlDate(entity.getDateOfReceipt()));
+        statement.setInt(5, entity.getGroup().getId());
+        statement.setInt(6, entity.getPersonalData().getId());
     }
 }

@@ -66,4 +66,16 @@ public class PersonalData {
     public void setEmail(String email) {
         this.email = email;
     }
+
+    @Override
+    public String toString() {
+        return "PersonalData{" +
+                "id=" + id +
+                ", dateOfBirth=" + dateOfBirth +
+                ", city=" + city +
+                ", address='" + address + '\'' +
+                ", phone='" + phone + '\'' +
+                ", email='" + email + '\'' +
+                '}';
+    }
 }

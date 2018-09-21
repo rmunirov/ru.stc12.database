@@ -2,14 +2,14 @@ package ru.innopolis.stc12.jdbc.realExample.dao;
 
 import java.util.List;
 
-public interface GenericDao<E, K> {
+public interface GenericDao<E> {
     boolean create(E entity);
 
-    E read(K id);
+    E read(int id);
 
-    E update(E entity);
+    boolean update(E entity);
 
-    boolean delete(K id);
+    boolean delete(int id);
 
     List<E> getAll();
 }

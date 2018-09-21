@@ -5,27 +5,54 @@ import ru.innopolis.stc12.jdbc.realExample.connectionManager.ConnectionManagerJd
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
 
-public abstract class AbstractDao<E, K> implements GenericDao<E, K> {
+public abstract class AbstractDao<E> implements GenericDao<E> {
     private static ConnectionManager connectionManager = ConnectionManagerJdbcImpl.getInstance();   //TODO this right?
     protected String readSql;
+    protected String createSql;
+    protected String deleteSql;
+    protected String updateSql;
+    protected String readAllSql;
 
-    protected abstract E readParse(PreparedStatement statement, K id) throws SQLException;
+    protected abstract List<E> readParse(ResultSet resultSet) throws SQLException;
+
+    protected abstract boolean createParse(PreparedStatement statement, E entity) throws SQLException;
+
+    protected abstract boolean updateParse(PreparedStatement statement, E entity) throws SQLException;
 
     @Override
     public boolean create(E entity) {
-        return false;
+        try (Connection connection = connectionManager.getConnection()) {
+            try (PreparedStatement preparedStatement = connection.prepareStatement(createSql)) {
+                return createParse(preparedStatement, entity);
+            } catch (SQLException e) {
+                System.out.println(e.getMessage());
+                return false;
+            }
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+            return false;
+        }
     }
 
     @Override
-    public E read(K id) {
-        Connection connection = connectionManager.getConnection();
-        E entity;
-        try (PreparedStatement preparedStatement = connection.prepareStatement(readSql)) {
-            entity = readParse(preparedStatement, id);
-            return entity;
+    public E read(int id) {
+        try (Connection connection = connectionManager.getConnection()) {
+            try (PreparedStatement preparedStatement = connection.prepareStatement(readSql)) {
+                preparedStatement.setInt(1, id);
+                ResultSet resultSet = preparedStatement.executeQuery();
+                List<E> list = readParse(resultSet);
+                if (list.isEmpty()) {
+                    return null;
+                }
+                return list.get(0);
+            } catch (SQLException e) {
+                System.out.println(e.getMessage());
+                return null;
+            }
         } catch (SQLException e) {
             System.out.println(e.getMessage());
             return null;
@@ -33,17 +60,50 @@ public abstract class AbstractDao<E, K> implements GenericDao<E, K> {
     }
 
     @Override
-    public E update(E entity) {
-        return null;
+    public boolean update(E entity) {
+        try (Connection connection = connectionManager.getConnection()) {
+            try (PreparedStatement preparedStatement = connection.prepareStatement(updateSql)) {
+                return updateParse(preparedStatement, entity);
+            } catch (SQLException e) {
+                System.out.println(e.getMessage());
+                return false;
+            }
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+            return false;
+        }
     }
 
     @Override
-    public boolean delete(K id) {
-        return false;
+    public boolean delete(int id) {
+        try (Connection connection = connectionManager.getConnection()) {
+            try (PreparedStatement preparedStatement = connection.prepareStatement(deleteSql)) {
+                preparedStatement.setInt(1, id);
+                return preparedStatement.execute();
+            } catch (SQLException e) {
+                System.out.println(e.getMessage());
+                return false;
+            }
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+            return false;
+        }
     }
 
     @Override
     public List<E> getAll() {
-        return null;
+        //TODO work very long
+        try (Connection connection = connectionManager.getConnection()) {
+            try (PreparedStatement preparedStatement = connection.prepareStatement(readAllSql)) {
+                ResultSet resultSet = preparedStatement.executeQuery();
+                return readParse(resultSet);
+            } catch (SQLException e) {
+                System.out.println(e.getMessage());
+                return null;
+            }
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+            return null;
+        }
     }
 }

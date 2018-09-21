@@ -64,4 +64,16 @@ public class Teacher {
     public void setSex(Sex sex) {
         this.sex = sex;
     }
+
+    @Override
+    public String toString() {
+        return "Teacher{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", surname='" + surname + '\'' +
+                ", department=" + department +
+                ", personalData=" + personalData +
+                ", sex=" + sex +
+                '}';
+    }
 }

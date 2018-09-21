@@ -24,4 +24,12 @@ public class Sex {
     public void setSex(String sex) {
         this.sex = sex;
     }
+
+    @Override
+    public String toString() {
+        return "Sex{" +
+                "id=" + id +
+                ", sex='" + sex + '\'' +
+                '}';
+    }
 }

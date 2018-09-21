@@ -1,4 +1,4 @@
-package ru.innopolis.stc12.jdbc;
+package ru.innopolis.stc12.jdbc.webinar;
 
 import java.sql.*;
 
